@@ -39,11 +39,11 @@ frontend responsibilities:
 
 ---
 # ingestion modes (robots.txt compliance)
-`newarknj.gov` disallows automated access in `robots.txt`. This is a hard architectural constraint, not a footnote.
+Checked against the live files (2026-08-16): `newarknj.gov` and the other CivicPlus-hosted town sites (Bloomfield, Fairfield, Livingston) disallow specific paths for generic user-agents (`/admin`, `/search`, `/currentevents`, `/map`, …) but not `/AgendaCenter` — so automated fetching of agenda listings and PDFs on those four is `robots.txt`-compliant. Montclair is the opposite case: its agendas are hosted on `ecode360.com`, a third-party platform (General Code) whose own `robots.txt` explicitly disallows `/documents` — the path Montclair's agendas live under. Permission from Montclair Township doesn't override the platform operator's own policy, so Montclair stays manual-ingestion-only until that's resolved directly with General Code. This robots.txt check — per site, checked live, not assumed — is a hard architectural constraint, not a footnote.
 
-1. **Manual mode (default, v1)** — point the parser at a local directory of PDFs downloaded by hand or received via the board's email list. Zero network access to newarknj.gov.
-2. **Authorized crawl mode (gated)** — runs only when `NEWARK_CRAWL_AUTHORIZED=true`, which is documented as requiring written permission from the City. Checks `robots.txt` before every fetch, rate-limits to ≤1 request/2s, sends a descriptive User-Agent with a contact email.
-3. Do not design around circumventing `robots.txt`. Manual mode covers MVP volume (~2 meetings/month/board).
+1. **Manual mode (default, v1)** — point the parser at a local directory of PDFs downloaded by hand or received via the board's email list. Zero network access required.
+2. **Authorized crawl mode (gated)** — runs only when that town's `<TOWN>_CRAWL_AUTHORIZED=true` (e.g. `NEWARK_CRAWL_AUTHORIZED`), which is documented as requiring written permission from the town, in addition to (not instead of) the robots.txt check. Checks `robots.txt` before every fetch, rate-limits to ≤1 request/2s, sends a descriptive User-Agent with a contact email. Supported towns: Newark, Bloomfield, Fairfield, Livingston — see `ingestion/scrape.py`.
+3. Do not design around circumventing `robots.txt` — this is why Montclair has no crawler. Manual mode covers MVP volume (~2 meetings/month/board) and remains the only path for Montclair.
 
 ---
 # state management
@@ -53,9 +53,9 @@ Core data shape returned by the API mirrors `agenda_items` joined to `meetings` 
 
 ---
 # data model
-Three tables. `block` + `lot` is the stable business key — not address (written inconsistently) or applicant (a new LLC per project).
+Three tables. `block` + `lot` is the stable business key — not address (written inconsistently) or applicant (a new LLC per project). Confirmed to hold across all five towns now in scope — see `docs/TOWN_FORMATS.md`.
 
-- **meetings** — board (`CPB`|`ZBA`), meeting_date, meeting_type, document_center_id, source_url, google_drive_url, raw_text, ingested_at
+- **meetings** — town, board (`planning`|`zoning`, generalized across all 5 towns rather than Newark's own `CPB`/`ZBA` naming — matches `ingestion/parse_header.py`'s `(town, board)` dispatch key), meeting_date, meeting_type, document_center_id, source_url, google_drive_url, raw_text, ingested_at
 - **agenda_items** — meeting_id FK, agenda_section, item_number, application_id, premises, block, lots[], ward, applicant, attorney, project_text, variances_raw, plus derived fields and override fields below
 - **projects** — one row per real-world project keyed on block+lot, linking the `agenda_items` where it reappears across meetings
 

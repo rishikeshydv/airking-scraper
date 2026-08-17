@@ -1,0 +1,33 @@
+[
+  {
+    "agenda_section": "Resolutions",
+    "item_number": 1,
+    "application_id": "",
+    "premises": "321 Broughton Avenue",
+    "blocks": [],
+    "ward": "",
+    "applicant": "",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Applications to Consider",
+    "item_number": 1,
+    "application_id": "",
+    "premises": "224 Broughton Avenue",
+    "blocks": [
+      {
+        "block": "901",
+        "lots": [
+          "1"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Hike Bajro / Bajro Management, LLC",
+    "attorney": null,
+    "project_text": "Zone: R-1B. seeking bulk variance and D1 Use variance and any such other relief from the Zoning Ordinance of the Township of Bloomfield to convert a vacant ground floor commercial space into a second residential apartment in the R-1B zone.",
+    "variances_raw": "variance and D1 Use variance and any such other relief from the Zoning Ordinance of the Township of Bloomfield to convert a vacant ground floor commercial space into a second residential apartment in the R-1B zone."
+  }
+]

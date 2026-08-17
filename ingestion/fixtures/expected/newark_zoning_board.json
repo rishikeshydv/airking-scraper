@@ -1,0 +1,62 @@
+[
+  {
+    "agenda_section": null,
+    "item_number": 1,
+    "application_id": "ZBA-25-48",
+    "premises": "140-144 Walnut St",
+    "blocks": [
+      {
+        "block": "915",
+        "lots": [
+          "26",
+          "30"
+        ]
+      }
+    ],
+    "ward": "East",
+    "applicant": "140S Walnut LLC",
+    "attorney": null,
+    "project_text": "In the MX-1 Zone, the applicant proposes the construction of a 6-story building and 35 units with tenant amenity space and parking. Applicant is seeking a D1 (Use) Variance to permit mid-rise multifamily dwellings and C Variances for insufficient rear yard setback, excessive lot coverage by building, excessive impervious coverage, insufficient off-street parking, insufficient ground floor parking wrapped with residential units or common space. Site Plan Approval is required.",
+    "variances_raw": "Variance to permit mid-rise multifamily dwellings and C Variances for insufficient rear yard setback, excessive lot coverage by building, excessive impervious coverage, insufficient off-street parking, insufficient ground floor parking wrapped with residential units or common space. Site Plan Approval is required."
+  },
+  {
+    "agenda_section": null,
+    "item_number": 2,
+    "application_id": "ZBA-26-08",
+    "premises": "118-120, 124-128 Polk St",
+    "blocks": [
+      {
+        "block": "1993",
+        "lots": [
+          "31",
+          "35",
+          "36"
+        ]
+      }
+    ],
+    "ward": "East",
+    "applicant": "120 Polk Management, LLC",
+    "attorney": null,
+    "project_text": "In the R-4, the applicant proposes to subdivide a portion of lot 31 and merge said portion into lot 35. The applicant proposes to consolidate new lot 35 and 36 to become lot 31.02 where a 5-story 25-unit building is proposed. Applicant is seeking a D5 Density and a D6 Height Variance, C Variances for insufficient lot size, insufficient lot width, insufficient side yard setback, insufficient rear yard setback, excessive lot coverage, excessive impervious coverage, insufficient building transparency x2, insufficient street parking and insufficient driveway width, Site Plan Approval and Subdivision Approval is required.",
+    "variances_raw": "Variance, C Variances for insufficient lot size, insufficient lot width, insufficient side yard setback, insufficient rear yard setback, excessive lot coverage, excessive impervious coverage, insufficient building transparency x2, insufficient street parking and insufficient driveway width, Site Plan Approval and Subdivision Approval is required."
+  },
+  {
+    "agenda_section": "Pending Applications",
+    "item_number": 1,
+    "application_id": "ZBA-25-18",
+    "premises": "145-147 4th Avenue",
+    "blocks": [
+      {
+        "block": "529",
+        "lots": [
+          "36"
+        ]
+      }
+    ],
+    "ward": "North",
+    "applicant": "Josue Gonzalez",
+    "attorney": null,
+    "project_text": "In the C-1 Zone, the applicant proposes to remove a portion of existing three-family to accommodate for a driveway to access parking in the rear yard. Applicant is seeking a C Variance for insufficient driveway width Site Plan Approval is not required. This application was adjourned to this date from the January 22 and April 9 Hearing.",
+    "variances_raw": "Variance for insufficient driveway width Site Plan Approval is not required. This application was adjourned to this date from the January 22 and April 9 Hearing."
+  }
+]

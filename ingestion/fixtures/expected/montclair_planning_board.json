@@ -1,0 +1,21 @@
+[
+  {
+    "agenda_section": "Old Business",
+    "item_number": 1,
+    "application_id": "2959",
+    "premises": "116-118 Walnut Street",
+    "blocks": [
+      {
+        "block": "3305",
+        "lots": [
+          "3.01"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Grafton Inns LLC",
+    "attorney": null,
+    "project_text": "Site plan application to expand seasonal deck and reconfigure parking lot. Materials distributed previously for the June 15th meeting.",
+    "variances_raw": null
+  }
+]

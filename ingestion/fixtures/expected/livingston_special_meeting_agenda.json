@@ -1,0 +1,40 @@
+[
+  {
+    "agenda_section": "Special Meeting",
+    "item_number": 1,
+    "application_id": "2023-37-PFSP (Amendment) & 2023-36-MSUB (Amendment)",
+    "premises": "Minor Subdivision Amendment",
+    "blocks": [
+      {
+        "block": "3100",
+        "lots": [
+          "56"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "321 South Livingston Avenue",
+    "attorney": null,
+    "project_text": "Brightview Senior Livingston Development LLC Applicant requests approval to amend the previously approved site plan for the drive aisle, circulation pattern, and parking. (Adjourned to Tuesday, February 3, 2026)",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Special Meeting",
+    "item_number": 2,
+    "application_id": "2025-87-MSUBV",
+    "premises": "54 West Hobart Gap Road",
+    "blocks": [
+      {
+        "block": "4904",
+        "lots": [
+          "26"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Alta Asset Management, LLC",
+    "attorney": null,
+    "project_text": "Applicant requests approval to subdivide Lot 26 into two lots: Lots 26.01 & 26.02. (Adjourned to Tuesday, February 3, 2026)",
+    "variances_raw": null
+  }
+]

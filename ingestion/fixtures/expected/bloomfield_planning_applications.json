@@ -1,0 +1,40 @@
+[
+  {
+    "agenda_section": "Applications to Consider",
+    "item_number": 1,
+    "application_id": "",
+    "premises": "116 Thomas Street",
+    "blocks": [
+      {
+        "block": "217",
+        "lots": [
+          "29"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "116 Thomas Street, LLC",
+    "attorney": null,
+    "project_text": "Zone: R-G. seeking minor site plan approval and C variance relief for side yard setback, parking, landscaping, number of bedrooms and building exteriors and any such other relief from the Zoning Ordinance of Bloomfield Township to retain an illegal 3rd floor dormer in the R-G zone.",
+    "variances_raw": "variance relief for side yard setback, parking, landscaping, number of bedrooms and building exteriors and any such other relief from the Zoning Ordinance of Bloomfield Township to retain an illegal 3rd floor dormer in the R-G zone."
+  },
+  {
+    "agenda_section": "Applications to Consider",
+    "item_number": 2,
+    "application_id": "",
+    "premises": "1400 Broad Street",
+    "blocks": [
+      {
+        "block": "1174",
+        "lots": [
+          "70"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Smiling, LLC",
+    "attorney": null,
+    "project_text": "Zone: B-2. seeking Preliminary and Final Major Site plan approval and class C bulk variance relief for front yard parking and number of parking spaces and any other relief from the Zoning Ordinance of the Township of Bloomfield to construct and additional to an existing dental office in the B-2 zone.",
+    "variances_raw": "variance relief for front yard parking and number of parking spaces and any other relief from the Zoning Ordinance of the Township of Bloomfield to construct and additional to an existing dental office in the B-2 zone."
+  }
+]

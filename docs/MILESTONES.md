@@ -50,7 +50,7 @@
 - `projects` table + block/lot linking across meetings
 - `scoring.py` implementing the tier table and `hvac_score` formula
 
-**Acceptance:** re-running ingestion on fixtures produces derived fields with confidence scores; the Walnut Street example scores as a strong lead despite carrying 8 `c` variances.
+**Acceptance:** re-running ingestion on fixtures produces derived fields with confidence scores; a project scores as a strong lead despite carrying many `c` variances — verified against `newark_planning_board.pdf`'s CPB-25-111 (760-766 Clinton Avenue, ground-up mixed-use, 11 `c` variances, scores 352 — a top-tier B lead), since the original "Walnut Street CPB-20-13" fixture referenced here no longer exists post the Milestone 2 five-town fixture refresh (see docs/TOWN_FORMATS.md).
 
 ---
 

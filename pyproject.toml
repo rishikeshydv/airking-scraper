@@ -1,0 +1,28 @@
+[project]
+name = "newark-agenda-tracker"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "pdfplumber>=0.11",
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+    "anthropic>=0.40",
+    "pydantic-settings>=2.6",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+ingest = "ingestion.ingest:main"
+
+[tool.setuptools]
+packages = ["api", "ingestion"]

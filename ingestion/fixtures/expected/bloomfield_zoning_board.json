@@ -1,0 +1,21 @@
+[
+  {
+    "agenda_section": "Old Business",
+    "item_number": 1,
+    "application_id": "",
+    "premises": "1250-1274 Broad Street",
+    "blocks": [
+      {
+        "block": "1171",
+        "lots": [
+          "10"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "SPG at Bloomfield, LLC",
+    "attorney": null,
+    "project_text": "Zone: B-2. seeking a D1 Use variance for drive through service, Class C Bulk variances for one way driveway, parking screening, signage, design waivers for concrete curbing, curb cuts, outdoor lighting, foot candle illumination, landscaping and any such other relief from the Zoning Ordinance of the Township of Bloomfield to convert the existing property into a McDonald’s fast food restaurant in the B-2 zone.",
+    "variances_raw": "variance for drive through service, Class C Bulk variances for one way driveway, parking screening, signage, design waivers for concrete curbing, curb cuts, outdoor lighting, foot candle illumination, landscaping and any such other relief from the Zoning Ordinance of the Township of Bloomfield to convert the existing property into a McDonald’s fast food restaurant in the B-2 zone."
+  }
+]

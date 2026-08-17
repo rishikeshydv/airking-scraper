@@ -1,0 +1,250 @@
+[
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 1,
+    "application_id": "2026-5-V",
+    "premises": "1 Avon Avenue",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Tao Zhang",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 2,
+    "application_id": "2026-25-V",
+    "premises": "33 Hickory Place",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Steven Draikiwicz",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 3,
+    "application_id": "2026-40-V",
+    "premises": "38 Ross Road",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Brett & Allison Goldberg",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 4,
+    "application_id": "2026-39-V",
+    "premises": "6 Hadrian Drive",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Elissa & Scott Sacket",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 5,
+    "application_id": "2026-46-V",
+    "premises": "70 Rockledge Drive",
+    "blocks": [],
+    "ward": "",
+    "applicant": "John & Beth Schachtel",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 6,
+    "application_id": "2026-50-V",
+    "premises": "46 West Lawn Road",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Rodak Builders LLC",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 7,
+    "application_id": "2026-53-V",
+    "premises": "3 Spalding Drive",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Rodak Builders LLC",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 8,
+    "application_id": "2026-38-V",
+    "premises": "320 E Cedar Street",
+    "blocks": [],
+    "ward": "",
+    "applicant": "Hitesh Bathija",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "Extension",
+    "item_number": 1,
+    "application_id": "2026-26-V",
+    "premises": "9 Tower Road",
+    "blocks": [
+      {
+        "block": "6001",
+        "lots": [
+          "62"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Tao Zhang",
+    "attorney": null,
+    "project_text": "R-2 Zone. Applicant seeks approval to construct a new single-family residence in violation of the following Sections: 170-97C2 Front Yard Setback – 60’ required; 40’ proposed; 20’ variance requested. 170-97C3 Right Side Yard Setback – 15’ required; 13.25’ proposed; 1.75’ variance requested. 170-97C4 Rear Yard Setback – 50’ required; 29.25’ proposed (existing); 20.75’ variance requested. 170-87CC2 Habitable Floor Area Ratio – 18% allowed; 29.65% proposed; 11.65% variance requested.",
+    "variances_raw": "variance requested. 170-97C3 Right Side Yard Setback – 15’ required; 13.25’ proposed; 1.75’ variance requested. 170-97C4 Rear Yard Setback – 50’ required; 29.25’ proposed (existing); 20.75’ variance requested. 170-87CC2 Habitable Floor Area Ratio – 18% allowed; 29.65% proposed; 11.65% variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 1,
+    "application_id": "2026-59-V",
+    "premises": "26 Crestview Hill Road",
+    "blocks": [
+      {
+        "block": "1506",
+        "lots": [
+          "42"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Rodak Builders LLC",
+    "attorney": null,
+    "project_text": "R-4 Zone. Applicant seeks approval for a new single-family house in violation of the following Sections: 170-99C2 Front Yard Setback – 40’ required; 33.8’ proposed; 6.2’ variance requested. 170-87CC4 Habitable Floor Area Ratio – 30% allowed; 35% proposed; 5% variance requested.",
+    "variances_raw": "variance requested. 170-87CC4 Habitable Floor Area Ratio – 30% allowed; 35% proposed; 5% variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 2,
+    "application_id": "2026-29-V",
+    "premises": "27 Cornell Drive",
+    "blocks": [
+      {
+        "block": "7500",
+        "lots": [
+          "8"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Utkarsh Patel, Purvi Sharma, & Sreejith N.",
+    "attorney": null,
+    "project_text": "R-1 Zone. Applicant seeks approval an addition in violation of the following Sections: 170-96C2 Front Yard Setback – 75’ required; 53.5’ proposed; 21.5’ variance requested. 170-96C4 Rear Yard Setback – 75’ required; 66.2’ proposed; 8.8’ variance requested. 170-87CC1 Habitable Floor Area Ratio – 15% allowed; 22.16% proposed; 7.16% variance requested.",
+    "variances_raw": "variance requested. 170-96C4 Rear Yard Setback – 75’ required; 66.2’ proposed; 8.8’ variance requested. 170-87CC1 Habitable Floor Area Ratio – 15% allowed; 22.16% proposed; 7.16% variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 3,
+    "application_id": "2026-46-V",
+    "premises": "13 Clover Lane",
+    "blocks": [
+      {
+        "block": "5701",
+        "lots": [
+          "7"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "13 Clover LN LLC",
+    "attorney": null,
+    "project_text": "R-3 Zone. Applicant seeks approval to construct a new single-family residence in violation of the following Sections: 170-98C2 Front Yard Setback – 50’ required; 42’ proposed (existing); 8’ variance requested. 170-87CC3 Habitable Floor Area Ratio – 21% allowed; 24.53% proposed; 3.53% variance requested.",
+    "variances_raw": "variance requested. 170-87CC3 Habitable Floor Area Ratio – 21% allowed; 24.53% proposed; 3.53% variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 4,
+    "application_id": "2026-47-V",
+    "premises": "33 Cobblewood Road",
+    "blocks": [
+      {
+        "block": "1307",
+        "lots": [
+          "10"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Rachna Maheshwari",
+    "attorney": null,
+    "project_text": "R-4 Zone. Applicant seeks approval for second floor rear addition in violation of the following Sections: 170-87CC4 Habitable Floor Area Ratio – 30% allowed; 34.08% proposed; 4.08% variance requested.",
+    "variances_raw": "variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 5,
+    "application_id": "2026-49-V",
+    "premises": "28 East Harrison Place",
+    "blocks": [
+      {
+        "block": "4804",
+        "lots": [
+          "8"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Jeffrey Cerqueira",
+    "attorney": null,
+    "project_text": "R-4 Zone. Applicant seeks approval for a first and second floor addition in violation of the following Sections: 170-99C2 Front Yard Setback – 40’ required; 32.2’ proposed (existing); 7.8’ variance requested. 170-99C3 Right Side Yard Setback – 10’ required; 5’ proposed; 5’ variance requested. 170-99C3 Left Side Yard Setback – 10’ required; 8’ proposed (existing); 2’ variance requested. 170-99CC3 Aggregate Side Yard Setback – 30% allowed; 26% proposed (existing); 4%",
+    "variances_raw": "variance requested. 170-99C3 Right Side Yard Setback – 10’ required; 5’ proposed; 5’ variance requested. 170-99C3 Left Side Yard Setback – 10’ required; 8’ proposed (existing); 2’ variance requested. 170-99CC3 Aggregate Side Yard Setback – 30% allowed; 26% proposed (existing); 4%"
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 6,
+    "application_id": "2026-54-V",
+    "premises": "159 West Hobart Gap Road",
+    "blocks": [
+      {
+        "block": "6800",
+        "lots": [
+          "40"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Manish Rathod",
+    "attorney": null,
+    "project_text": "R-1 Zone. Applicant seeks approval for a side and rear addition in violation of the following Sections: 170-96C2 Front Yard Setback – 75’ required; 74.4’ proposed (existing); 0.6’ variance requested. 170-96C4 Rear Yard Setback – 75’ required; 72.6’ proposed; 2.4’ variance requested. 170-87CC Habitable Floor Area Ratio – 15% allowed; 16.74% proposed; 1.74% variance requested.",
+    "variances_raw": "variance requested. 170-96C4 Rear Yard Setback – 75’ required; 72.6’ proposed; 2.4’ variance requested. 170-87CC Habitable Floor Area Ratio – 15% allowed; 16.74% proposed; 1.74% variance requested."
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 7,
+    "application_id": "2026-42-V",
+    "premises": "19 Sycamore Terrace",
+    "blocks": [
+      {
+        "block": "2901",
+        "lots": [
+          "6"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Constantin Kaplun",
+    "attorney": null,
+    "project_text": "R-3 Zone. Applicant seeks approval for a two-story addition in violation of the following Sections: 170-87BB3 Habitable Floor Area – 3520 sf allowed; 3578 sf proposed; 58 sf variance requested. 170-87CC3 Habitable Floor Area Ratio – 21% allowed; 24.5% proposed; 3.5% variance requested.",
+    "variances_raw": "variance requested. 170-87CC3 Habitable Floor Area Ratio – 21% allowed; 24.5% proposed; 3.5% variance requested."
+  }
+]

@@ -1,14 +1,14 @@
 # product specification
 
 ## overview
-"Newark Agenda Tracker" scrapes Newark, NJ Central Planning Board and Zoning Board of Adjustment meeting agendas, extracts each land-use application into structured records, and presents them in a searchable web UI. It exists to solve a timing problem for Air King (Totowa, NJ, commercial HVAC contractor): by the time a mechanical permit is pulled the HVAC subcontractor has already been selected, but land-use board agendas surface projects 12–24 months earlier, while the general contractor is still being chosen. Every record links back to the source agenda PDF and the meeting's Google Drive project-files folder so a lead can be verified against the original in one click. This is town #1 of an eventual 22 in Essex County; ingestion is deliberately not built around multi-town abstractions until a second town exists.
+"AirKing Data Tracker" scrapes Newark, NJ Central Planning Board and Zoning Board of Adjustment meeting agendas, extracts each land-use application into structured records, and presents them in a searchable web UI. It exists to solve a timing problem for Air King (Totowa, NJ, commercial HVAC contractor): by the time a mechanical permit is pulled the HVAC subcontractor has already been selected, but land-use board agendas surface projects 12–24 months earlier, while the general contractor is still being chosen. Every record links back to the source agenda PDF and the meeting's Google Drive project-files folder so a lead can be verified against the original in one click. Five towns are in scope: Newark, Bloomfield, Fairfield, Livingston, Montclair — of an eventual 22 in Essex County; ingestion is deliberately not built around abstractions for towns beyond this set until a sixth one is added. See `docs/TOWN_FORMATS.md` for the per-town/per-board agenda format reference.
 
 ---
 # core user flow
 
 ## sales lead (browsing)
-1. Open the table view, sorted by `hvac_score` descending
-2. Filter by board, tier, agenda section, date range, or "ground-up only"
+1. Open the table view, sorted by meeting date descending (latest first, oldest last)
+2. Filter by location (state → county → town, cascading), board, tier, agenda section, date range, or "ground-up only"
 3. Text-search across `project_text` and applicant name
 4. Expand a row to read the full `project_text` verbatim
 5. Follow the source PDF link and Google Drive folder link to verify and find contact info
@@ -23,7 +23,7 @@
 
 ---
 # non-goals
-- Other Essex County towns (21 remaining), other counties, other states
+- Essex County towns beyond the five currently in scope (Newark, Bloomfield, Fairfield, Livingston, Montclair) — 17 remaining — other counties, other states
 - Building permits, resolutions, legal notices, council/Legistar items, meeting-video transcription — agendas only
 - Email digests, alerts, notifications, or CRM integration
 - User accounts, roles, or auth — single-tenant internal tool

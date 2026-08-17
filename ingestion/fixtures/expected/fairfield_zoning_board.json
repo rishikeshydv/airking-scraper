@@ -1,0 +1,40 @@
+[
+  {
+    "agenda_section": "Memorialization",
+    "item_number": 1,
+    "application_id": "2026-3",
+    "premises": "7 John Street",
+    "blocks": [
+      {
+        "block": "4702",
+        "lots": [
+          "1.01"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Michael and Lois Hammer",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": "C Variance"
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 1,
+    "application_id": "2021-22 (2)",
+    "premises": "129, 131 & 137 Fairfield Road",
+    "blocks": [
+      {
+        "block": "4702",
+        "lots": [
+          "1.01"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "FOH Fairfield Limited, LLC",
+    "attorney": null,
+    "project_text": "",
+    "variances_raw": null
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "agenda_section": "Resolutions",
+    "item_number": 1,
+    "application_id": "2953",
+    "premises": "105 Upper Mountain Avenue",
+    "blocks": [
+      {
+        "block": "1503",
+        "lots": [
+          "19"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Yaakoub Hijazi",
+    "attorney": null,
+    "project_text": "In-ground pool and detached garage.",
+    "variances_raw": null
+  },
+  {
+    "agenda_section": "New Business",
+    "item_number": 1,
+    "application_id": "2976",
+    "premises": "95 South Mountain Avenue",
+    "blocks": [
+      {
+        "block": "1301",
+        "lots": [
+          "30",
+          "31"
+        ]
+      }
+    ],
+    "ward": "",
+    "applicant": "Rashmi Sharma",
+    "attorney": null,
+    "project_text": "Construction of new detached garage on Lot 30.",
+    "variances_raw": null
+  }
+]

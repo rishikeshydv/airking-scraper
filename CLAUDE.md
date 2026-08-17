@@ -9,7 +9,7 @@ Prioritize:
 ---
 Avoid:
 1. premature optimization
-2. speculative abstractions — especially multi-town abstractions; there is exactly one town (Newark) until a second one exists
+2. speculative abstractions — five towns are in scope (Newark, Bloomfield, Fairfield, Livingston, Montclair); do not build abstractions anticipating towns beyond this set until a sixth one exists
 3. unnecessary indirection
 ---
 # workflow rules
@@ -46,7 +46,7 @@ React:
 ---
 # ingestion & api architecture
 1. All Claude API calls happen in `ingestion/extract_fields.py` — never from the frontend
-2. Manual/local ingestion is the default mode; authorized crawling requires `NEWARK_CRAWL_AUTHORIZED=true` and is documented as requiring written City permission
+2. Manual/local ingestion is the default mode; authorized crawling requires that town's `<TOWN>_CRAWL_AUTHORIZED=true` (Newark, Bloomfield, Fairfield, Livingston) and is documented as requiring written permission from the town, in addition to a clean `robots.txt` check (verified per-site, not assumed — see `docs/ARCHITECTURE.md`). Montclair has no crawler: its agenda platform (ecode360.com) disallows automated access to its own site in `robots.txt`.
 3. Environment variables via `.env.development` / `.env.production`; never commit real values
 4. Re-ingestion must never overwrite a stored manual correction
 ---
@@ -56,4 +56,4 @@ React:
 3. Before introducing a dependency, justify why a native API or existing dependency is not sufficient.
 ---
 # important
-Do not generate large amounts of speculative code. Do not build multi-town abstractions until a second town exists. Build step-by-step with production-quality decisions, and prove the parser against fixtures before starting any UI work.
+Do not generate large amounts of speculative code. Do not build abstractions anticipating towns beyond the five currently in scope. Build step-by-step with production-quality decisions, and prove the parser against fixtures before starting any UI work.
