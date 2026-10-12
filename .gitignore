@@ -21,3 +21,8 @@ frontend/.next/
 
 # ingested source PDFs served by the API (see api.config.pdf_storage_dir)
 storage/
+
+# build artifacts / tooling
+build/
+dist/
+.serena/

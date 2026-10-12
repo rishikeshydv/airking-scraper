@@ -2,7 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env.development", extra="ignore")
+    # Later files win, so .env.development overrides a plain .env.
+    model_config = SettingsConfigDict(env_file=(".env", ".env.development"), extra="ignore")
 
     database_url: str = "postgresql+psycopg://newark:newark@localhost:5433/newark_agenda_tracker"
     anthropic_api_key: str = ""
