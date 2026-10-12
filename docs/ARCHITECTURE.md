@@ -14,7 +14,7 @@ frontend:
 2. TypeScript
 3. Tailwind CSS
 
-hosting: Railway — separate `api` (FastAPI, runs `alembic upgrade head` on boot, source PDFs on a mounted volume via `PDF_STORAGE_DIR`) and `frontend` (Next.js, Node >=20.9) services plus Postgres. Ingestion runs inside the api container so stored PDFs land on the volume: `railway ssh --service api -- ingest --crawl <town>` (or `ingest --dir <path>`).
+hosting: Railway — separate `api` (FastAPI, runs `alembic upgrade head` on boot, source PDFs on a mounted volume via `PDF_STORAGE_DIR`) and `frontend` (Next.js, Node >=20.9) services plus Postgres. Ingestion runs inside the api container so stored PDFs land on the volume: `railway ssh --service api -- /opt/venv/bin/ingest --crawl <town>` (or `--dir <path>`; the ssh shell's PATH doesn't include the venv, so use the full path).
 
 note: an all-TypeScript stack (Next.js API routes instead of FastAPI, `pdf-parse` instead of `pdfplumber`) is a viable alternative if a single language is preferred. Proceeding with the Python/FastAPI split above per intake.
 
