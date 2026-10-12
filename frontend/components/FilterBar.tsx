@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { AgendaItemFilters, Board } from "@/lib/api";
+import { useRef, useState } from "react";
+import type { AgendaItemFilters, Board, HvacTier, Sort } from "@/lib/api";
 import { countiesForState, statesList, townMeta, townsForCounty } from "@/lib/geography";
 
 interface FilterBarProps {
@@ -13,6 +13,13 @@ interface FilterBarProps {
 const BOARDS: { value: Board; label: string }[] = [
   { value: "planning", label: "Planning" },
   { value: "zoning", label: "Zoning" },
+];
+
+const TIERS: HvacTier[] = ["A", "B", "C", "D"];
+
+const SORTS: { value: Sort; label: string }[] = [
+  { value: "score", label: "Best score first" },
+  { value: "date", label: "Latest meeting first" },
 ];
 
 const fieldClass =
@@ -31,9 +38,13 @@ export function FilterBar({ filters, sections, onChange }: FilterBarProps) {
   const [searchValue, setSearchValue] = useState(filters.q ?? "");
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => {
+  // Follow the URL when it changes from elsewhere (back button, shared link).
+  // Done while rendering rather than in an effect, so there's no extra render.
+  const [lastSeenQ, setLastSeenQ] = useState(filters.q);
+  if (filters.q !== lastSeenQ) {
+    setLastSeenQ(filters.q);
     setSearchValue(filters.q ?? "");
-  }, [filters.q]);
+  }
 
   function handleSearchChange(value: string) {
     setSearchValue(value);
@@ -50,13 +61,15 @@ export function FilterBar({ filters, sections, onChange }: FilterBarProps) {
   const [selectedState, setSelectedState] = useState(() => townMeta(filters.town ?? "")?.state ?? "");
   const [selectedCounty, setSelectedCounty] = useState(() => townMeta(filters.town ?? "")?.county ?? "");
 
-  useEffect(() => {
+  const [lastSeenTown, setLastSeenTown] = useState(filters.town);
+  if (filters.town !== lastSeenTown) {
+    setLastSeenTown(filters.town);
     const meta = townMeta(filters.town ?? "");
     if (meta) {
       setSelectedState(meta.state);
       setSelectedCounty(meta.county);
     }
-  }, [filters.town]);
+  }
 
   function handleStateChange(value: string) {
     setSelectedState(value);
@@ -132,6 +145,22 @@ export function FilterBar({ filters, sections, onChange }: FilterBarProps) {
       </label>
 
       <label className={labelClass}>
+        <span className={labelTextClass}>Tier</span>
+        <select
+          className={fieldClass}
+          value={filters.tier ?? ""}
+          onChange={(e) => onChange({ ...filters, tier: (e.target.value || undefined) as HvacTier | undefined })}
+        >
+          <option value="">All</option>
+          {TIERS.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className={labelClass}>
         <span className={labelTextClass}>Section</span>
         <select
           className={fieldClass}
@@ -174,6 +203,22 @@ export function FilterBar({ filters, sections, onChange }: FilterBarProps) {
           onChange={(e) => onChange({ ...filters, groundUp: e.target.checked || undefined })}
         />
         Ground-up only
+      </label>
+
+      <label className={labelClass}>
+        <span className={labelTextClass}>Sort</span>
+        <select
+          className={fieldClass}
+          value={filters.sort ?? "score"}
+          // "score" is the API default, so it stays out of the URL.
+          onChange={(e) => onChange({ ...filters, sort: e.target.value === "date" ? "date" : undefined })}
+        >
+          {SORTS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label className={`${labelClass} min-w-48 flex-1`}>

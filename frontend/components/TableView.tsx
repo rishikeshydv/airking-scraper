@@ -3,32 +3,38 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { fetchAgendaItems, type AgendaItemFilters, type Board } from "@/lib/api";
+import {
+  fetchAgendaItems,
+  filtersToSearchParams,
+  type AgendaItemFilters,
+  type Board,
+  type HvacTier,
+  type Sort,
+} from "@/lib/api";
 import { AgendaTable } from "./AgendaTable";
 import { FilterBar } from "./FilterBar";
+
+const BOARDS: readonly Board[] = ["planning", "zoning"];
+const TIERS: readonly HvacTier[] = ["A", "B", "C", "D"];
+const SORTS: readonly Sort[] = ["score", "date"];
+
+/** The URL value when it is one of the allowed values, otherwise undefined (a hand-edited URL can't inject others). */
+function oneOf<T extends string>(value: string | null, allowed: readonly T[]): T | undefined {
+  return allowed.find((candidate) => candidate === value);
+}
 
 function filtersFromSearchParams(params: URLSearchParams): AgendaItemFilters {
   return {
     town: params.get("town") || undefined,
-    board: (params.get("board") as Board) || undefined,
+    board: oneOf(params.get("board"), BOARDS),
     section: params.get("section") || undefined,
     dateFrom: params.get("date_from") || undefined,
     dateTo: params.get("date_to") || undefined,
     groundUp: params.get("ground_up") === "true" || undefined,
     q: params.get("q") || undefined,
+    tier: oneOf(params.get("tier"), TIERS),
+    sort: oneOf(params.get("sort"), SORTS),
   };
-}
-
-function filtersToSearchParams(filters: AgendaItemFilters): URLSearchParams {
-  const params = new URLSearchParams();
-  if (filters.town) params.set("town", filters.town);
-  if (filters.board) params.set("board", filters.board);
-  if (filters.section) params.set("section", filters.section);
-  if (filters.dateFrom) params.set("date_from", filters.dateFrom);
-  if (filters.dateTo) params.set("date_to", filters.dateTo);
-  if (filters.groundUp) params.set("ground_up", "true");
-  if (filters.q) params.set("q", filters.q);
-  return params;
 }
 
 export function TableView() {
