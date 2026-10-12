@@ -8,10 +8,12 @@ import os
 from collections.abc import Iterator
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from api.db import Base
+from api.db import Base, get_db
+from api.main import app
 
 
 @pytest.fixture
@@ -28,3 +30,16 @@ def session_factory() -> Iterator[sessionmaker[Session]]:
 
     Base.metadata.drop_all(engine)
     engine.dispose()
+
+
+@pytest.fixture
+def client(session_factory: sessionmaker[Session]) -> Iterator[TestClient]:
+    """API test client wired to the scratch database."""
+
+    def get_test_db() -> Iterator[Session]:
+        with session_factory() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = get_test_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()

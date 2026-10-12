@@ -10,6 +10,7 @@ drill-down toward town (docs/PROD-SPEC.md — all 5 towns share one state and
 county today), not separate filters here.
 """
 
+import datetime
 from datetime import date
 from typing import Literal
 
@@ -19,7 +20,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from api.db import get_db
-from api.models import AgendaItem, Meeting
+from api.models import DERIVED_FIELDS, AgendaItem, Meeting
 
 router = APIRouter()
 
@@ -39,6 +40,18 @@ class MeetingSummaryOut(BaseModel):
     @property
     def source_pdf_url(self) -> str | None:
         return f"/meetings/{self.id}/pdf" if self.source_pdf_path else None
+
+
+FieldValue = str | int | bool | list[str] | None
+
+
+class CorrectionOut(BaseModel):
+    """One manual correction: the value shown, the extracted value it replaces, and who/when."""
+
+    raw: FieldValue
+    value: FieldValue
+    corrected_by: str | None
+    corrected_at: datetime.datetime | None
 
 
 class AgendaItemOut(BaseModel):
@@ -69,6 +82,24 @@ class AgendaItemOut(BaseModel):
     extraction_confidence: float | None
     hvac_tier: str | None
     hvac_score: int | None
+    # Only the derived fields that carry a correction appear here, keyed by field name.
+    overrides: dict[str, CorrectionOut] = {}
+
+    @classmethod
+    def from_item(cls, item: AgendaItem) -> "AgendaItemOut":
+        """Build the response with each derived field showing its corrected value when there is one."""
+        out = cls.model_validate(item)
+        for field in DERIVED_FIELDS:
+            setattr(out, field, item.effective(field))
+            override = getattr(item, f"{field}_override")
+            if override is not None:
+                out.overrides[field] = CorrectionOut(
+                    raw=getattr(item, field),
+                    value=override,
+                    corrected_by=getattr(item, f"{field}_corrected_by"),
+                    corrected_at=getattr(item, f"{field}_corrected_at"),
+                )
+        return out
 
 
 @router.get("/agenda-items", response_model=list[AgendaItemOut])
@@ -83,7 +114,7 @@ def list_agenda_items(
     q: str | None = Query(None, description="text search across project_text and applicant"),
     sort: Literal["score", "date"] = Query("score", description="score = highest hvac_score first; date = latest meeting first"),
     db: Session = Depends(get_db),
-) -> list[AgendaItem]:
+) -> list[AgendaItemOut]:
     query = db.query(AgendaItem).join(Meeting)
 
     if town is not None:
@@ -110,4 +141,4 @@ def list_agenda_items(
     else:
         query = query.order_by(Meeting.meeting_date.desc(), AgendaItem.id.desc())
 
-    return query.all()
+    return [AgendaItemOut.from_item(item) for item in query.all()]

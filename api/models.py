@@ -1,12 +1,26 @@
 from __future__ import annotations
 
 import datetime
+from typing import Any
 
 from sqlalchemy import ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.db import Base
+from ingestion.scoring import hvac_score, hvac_tier
+
+# Fields Claude extracts from project_text; each can carry a manual correction.
+DERIVED_FIELDS = (
+    "building_type",
+    "stories",
+    "unit_count",
+    "square_footage",
+    "is_ground_up",
+    "involves_demolition",
+    "zone",
+    "variance_types",
+)
 
 
 class Meeting(Base):
@@ -97,6 +111,34 @@ class AgendaItem(Base):
     extraction_confidence: Mapped[float | None]
     extraction_model_version: Mapped[str | None]
 
+    # Manual corrections (docs/ARCHITECTURE.md): one nullable override per derived
+    # field, plus who set it and when. Null means "no correction". Ingestion
+    # writes only the raw columns above, never these.
+    building_type_override: Mapped[str | None]
+    building_type_corrected_by: Mapped[str | None]
+    building_type_corrected_at: Mapped[datetime.datetime | None]
+    stories_override: Mapped[int | None]
+    stories_corrected_by: Mapped[str | None]
+    stories_corrected_at: Mapped[datetime.datetime | None]
+    unit_count_override: Mapped[int | None]
+    unit_count_corrected_by: Mapped[str | None]
+    unit_count_corrected_at: Mapped[datetime.datetime | None]
+    square_footage_override: Mapped[int | None]
+    square_footage_corrected_by: Mapped[str | None]
+    square_footage_corrected_at: Mapped[datetime.datetime | None]
+    is_ground_up_override: Mapped[bool | None]
+    is_ground_up_corrected_by: Mapped[str | None]
+    is_ground_up_corrected_at: Mapped[datetime.datetime | None]
+    involves_demolition_override: Mapped[bool | None]
+    involves_demolition_corrected_by: Mapped[str | None]
+    involves_demolition_corrected_at: Mapped[datetime.datetime | None]
+    zone_override: Mapped[str | None]
+    zone_corrected_by: Mapped[str | None]
+    zone_corrected_at: Mapped[datetime.datetime | None]
+    variance_types_override: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    variance_types_corrected_by: Mapped[str | None]
+    variance_types_corrected_at: Mapped[datetime.datetime | None]
+
     # Computed deterministically from the derived fields above
     # (ingestion/scoring.py) — not Claude output, so no confidence/model_version.
     hvac_tier: Mapped[str | None]
@@ -104,3 +146,23 @@ class AgendaItem(Base):
 
     meeting: Mapped[Meeting] = relationship(back_populates="agenda_items")
     project: Mapped[Project | None] = relationship(back_populates="agenda_items")
+
+    def effective(self, field: str) -> Any:
+        """The corrected value of a derived field when there is one, else the extracted value."""
+        override = getattr(self, f"{field}_override")
+        return getattr(self, field) if override is None else override
+
+    def has_correction(self) -> bool:
+        """True when any derived field carries a manual correction."""
+        return any(getattr(self, f"{field}_override") is not None for field in DERIVED_FIELDS)
+
+    def recompute_score(self) -> None:
+        """Set hvac_tier/hvac_score from the effective (corrected-if-present) field values."""
+        building_type = self.effective("building_type")
+        stories = self.effective("stories")
+        is_ground_up = self.effective("is_ground_up")
+        square_footage = self.effective("square_footage")
+        variance_types = self.effective("variance_types")
+
+        self.hvac_tier = hvac_tier(building_type, stories)
+        self.hvac_score = hvac_score(self.hvac_tier, is_ground_up, square_footage, variance_types)

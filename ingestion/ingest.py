@@ -30,7 +30,6 @@ from api.models import Meeting, Project
 from ingestion.extract_fields import extract_fields
 from ingestion.fetch import CrawlNotAuthorizedError, RobotsDisallowedError, fetch_url
 from ingestion.parse_header import AgendaItem, parse_agenda
-from ingestion.scoring import hvac_score, hvac_tier
 from ingestion.scrape import TOWN_AGENDA_URLS, parse_agenda_center
 
 _MONTH_NAMES = (
@@ -179,8 +178,9 @@ def _read_agenda_pdfs(directory: Path) -> list[AgendaPdf]:
 def _refresh_item_record(session: Session, record: AgendaItemRecord, item: AgendaItem) -> None:
     """Copy a parsed item onto its row, calling Claude only when the item's text is new.
 
-    Re-ingestion writes raw extraction only; the score is recomputed from the
-    stored fields every time, so a changed scoring rule takes effect on re-run.
+    Re-ingestion writes raw extraction only, never a manual correction. The
+    score is recomputed from the effective (corrected-if-present) values every
+    time, so a changed scoring rule takes effect on re-run.
     """
     first_block = item.blocks[0] if item.blocks else None
     block = first_block.block if first_block else ""
@@ -214,9 +214,7 @@ def _refresh_item_record(session: Session, record: AgendaItemRecord, item: Agend
         record.extraction_confidence = extraction.confidence
         record.extraction_model_version = extraction.model_version
 
-    tier = hvac_tier(record.building_type, record.stories)
-    record.hvac_tier = tier
-    record.hvac_score = hvac_score(tier, record.is_ground_up, record.square_footage, record.variance_types)
+    record.recompute_score()
 
 
 def _delete_orphan_projects(session: Session) -> None:
@@ -269,8 +267,16 @@ def _ingest_meeting(session: Session, pdf: AgendaPdf) -> int:
         _refresh_item_record(session, record, item)
         session.add(record)
 
-    # Whatever is left was on file but is no longer in the agenda.
+    # Whatever is left was on file but is no longer in the agenda. A row
+    # carrying a manual correction is kept: deleting it would lose that work.
     for stale_record in records_by_key.values():
+        if stale_record.has_correction():
+            print(
+                f"keeping {stale_record.application_id} ({pdf.town}/{pdf.board} {pdf.meeting_date}): "
+                "no longer on the agenda but has a manual correction",
+                file=sys.stderr,
+            )
+            continue
         session.delete(stale_record)
 
     _delete_orphan_projects(session)

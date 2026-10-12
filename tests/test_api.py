@@ -1,14 +1,10 @@
 """Read API behaviour against a real Postgres (see conftest.py)."""
 
 import datetime
-from collections.abc import Iterator
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
-from api.db import get_db
-from api.main import app
 from api.models import AgendaItem, Meeting
 
 
@@ -27,17 +23,6 @@ def make_item(meeting_id: int, item_number: int, **fields: object) -> AgendaItem
         variance_types=[],
     )
     return AgendaItem(**{**defaults, **fields})
-
-
-@pytest.fixture
-def client(session_factory: sessionmaker[Session]) -> Iterator[TestClient]:
-    def get_test_db() -> Iterator[Session]:
-        with session_factory() as session:
-            yield session
-
-    app.dependency_overrides[get_db] = get_test_db
-    yield TestClient(app)
-    app.dependency_overrides.clear()
 
 
 @pytest.fixture
