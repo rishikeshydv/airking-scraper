@@ -7,7 +7,7 @@
 # core user flow
 
 ## sales lead (browsing)
-1. Open the table view, sorted by meeting date descending (latest first, oldest last)
+1. Open the table view, sorted by `hvac_score` descending (best leads first); a toggle switches to meeting date descending (latest first, oldest last)
 2. Filter by location (state → county → town, cascading), board, tier, agenda section, date range, or "ground-up only"
 3. Text-search across `project_text` and applicant name
 4. Expand a row to read the full `project_text` verbatim

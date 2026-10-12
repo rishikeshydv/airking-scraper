@@ -1,19 +1,10 @@
-"""Re-ingestion behaviour against a real Postgres.
+"""Re-ingestion behaviour against a real Postgres (see conftest.py)."""
 
-Runs only when TEST_DATABASE_URL points at a scratch database — the fixture
-drops and recreates every table in it, so never point it at real data.
-"""
-
-import os
 import shutil
-from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
-from api.db import Base
 from api.models import AgendaItem, Meeting, Project
 from ingestion import ingest
 from ingestion.extract_fields import FieldExtraction
@@ -44,27 +35,14 @@ def agenda_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def session_factory(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[sessionmaker[Session]]:
-    database_url = os.environ.get("TEST_DATABASE_URL")
-    if not database_url:
-        pytest.skip("set TEST_DATABASE_URL to a scratch database to run database tests")
-
-    engine = create_engine(database_url)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-    factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-
-    monkeypatch.setattr(ingest, "SessionLocal", factory)
+def pdf_storage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(ingest.settings, "pdf_storage_dir", str(tmp_path / "stored_pdfs"))
-
-    yield factory
-
-    Base.metadata.drop_all(engine)
-    engine.dispose()
 
 
 @pytest.fixture
-def extractor(monkeypatch: pytest.MonkeyPatch) -> StubExtractor:
+def extractor(monkeypatch: pytest.MonkeyPatch, session_factory, pdf_storage) -> StubExtractor:
+    """Route ingestion to the scratch database and replace the Claude call with a stub."""
+    monkeypatch.setattr(ingest, "SessionLocal", session_factory)
     stub = StubExtractor()
     monkeypatch.setattr(ingest, "extract_fields", stub)
     return stub

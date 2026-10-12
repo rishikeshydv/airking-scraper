@@ -4,12 +4,14 @@ Filters and default sort mirror docs/PROD-SPEC.md's core sales-lead flow and
 docs/ARCHITECTURE.md's state-management section: town, board, tier, agenda
 section, date range, ground-up-only, and a text search across project_text
 and applicant name — nothing beyond that documented filter set. Default sort
-is meeting date descending (latest first); state/county are a frontend-only
+is hvac_score descending (best leads first), with sort=date for latest meeting
+first; state/county are a frontend-only
 drill-down toward town (docs/PROD-SPEC.md — all 5 towns share one state and
 county today), not separate filters here.
 """
 
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field, computed_field
@@ -79,6 +81,7 @@ def list_agenda_items(
     date_to: date | None = None,
     ground_up: bool | None = Query(None, description="true to show only ground-up projects"),
     q: str | None = Query(None, description="text search across project_text and applicant"),
+    sort: Literal["score", "date"] = Query("score", description="score = highest hvac_score first; date = latest meeting first"),
     db: Session = Depends(get_db),
 ) -> list[AgendaItem]:
     query = db.query(AgendaItem).join(Meeting)
@@ -101,4 +104,10 @@ def list_agenda_items(
         pattern = f"%{q}%"
         query = query.filter(or_(AgendaItem.project_text.ilike(pattern), AgendaItem.applicant.ilike(pattern)))
 
-    return query.order_by(Meeting.meeting_date.desc(), AgendaItem.id.desc()).all()
+    if sort == "score":
+        # Unscored items (unknown building type) sink to the bottom.
+        query = query.order_by(AgendaItem.hvac_score.desc().nulls_last(), Meeting.meeting_date.desc(), AgendaItem.id.desc())
+    else:
+        query = query.order_by(Meeting.meeting_date.desc(), AgendaItem.id.desc())
+
+    return query.all()
