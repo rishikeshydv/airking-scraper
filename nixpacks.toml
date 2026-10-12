@@ -1,4 +1,9 @@
 providers = ["python"]
 
 [phases.install]
-cmds = ["python -m venv --copies /opt/venv", ". /opt/venv/bin/activate && pip install -r requirements.txt"]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate && pip install -r requirements.txt",
+  # Editable install puts the `ingest` command on PATH (pyproject [project.scripts]) while keeping one copy of the code in /app.
+  ". /opt/venv/bin/activate && pip install --no-deps -e .",
+]
