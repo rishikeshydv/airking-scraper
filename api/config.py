@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +21,14 @@ class Settings(BaseSettings):
     # URL at all (no network fetch, no AgendaCenter link).
     pdf_storage_dir: str = "storage/pdfs"
     frontend_origin: str = "http://localhost:3000"
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg3_driver(cls, url: str) -> str:
+        """Railway hands out plain postgresql:// URLs; SQLAlchemy needs the psycopg3 driver named."""
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return url
 
 
 settings = Settings()
