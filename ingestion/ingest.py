@@ -29,7 +29,7 @@ from api.models import AgendaItem as AgendaItemRecord
 from api.models import Meeting, Project
 from ingestion.extract_fields import extract_fields
 from ingestion.fetch import CrawlNotAuthorizedError, RobotsDisallowedError, fetch_url
-from ingestion.parse_header import parse_agenda
+from ingestion.parse_header import AgendaItem, parse_agenda
 from ingestion.scoring import hvac_score, hvac_tier
 from ingestion.scrape import TOWN_AGENDA_URLS, parse_agenda_center
 
@@ -115,9 +115,11 @@ def _get_or_create_project(session: Session, block: str, lots: list[str]) -> Pro
     if not block:
         return None
 
-    project = session.query(Project).filter_by(block=block, lots=lots).one_or_none()
+    # Sorted so "5, 1" and "1, 5" are the same project.
+    project_lots = sorted(lots)
+    project = session.query(Project).filter_by(block=block, lots=project_lots).one_or_none()
     if project is None:
-        project = Project(block=block, lots=lots)
+        project = Project(block=block, lots=project_lots)
         session.add(project)
         session.flush()
     return project
@@ -174,8 +176,61 @@ def _read_agenda_pdfs(directory: Path) -> list[AgendaPdf]:
     return list(pdf_by_meeting.values())
 
 
+def _refresh_item_record(session: Session, record: AgendaItemRecord, item: AgendaItem) -> None:
+    """Copy a parsed item onto its row, calling Claude only when the item's text is new.
+
+    Re-ingestion writes raw extraction only; the score is recomputed from the
+    stored fields every time, so a changed scoring rule takes effect on re-run.
+    """
+    first_block = item.blocks[0] if item.blocks else None
+    block = first_block.block if first_block else ""
+    lots = first_block.lots if first_block else []
+    project = _get_or_create_project(session, block, lots)
+
+    # Items whose earlier extraction failed (model_version None) are retried too.
+    needs_extraction = record.project_text != item.project_text or record.extraction_model_version is None
+
+    record.application_id = item.application_id
+    record.premises = item.premises
+    record.block = block
+    record.lots = lots
+    record.ward = item.ward
+    record.applicant = item.applicant
+    record.attorney = item.attorney
+    record.project_text = item.project_text
+    record.variances_raw = item.variances_raw
+    record.project_id = project.id if project else None
+
+    if needs_extraction:
+        extraction = extract_fields(item.project_text)
+        record.building_type = extraction.building_type
+        record.stories = extraction.stories
+        record.unit_count = extraction.unit_count
+        record.square_footage = extraction.square_footage
+        record.is_ground_up = extraction.is_ground_up
+        record.involves_demolition = extraction.involves_demolition
+        record.zone = extraction.zone
+        record.variance_types = extraction.variance_types
+        record.extraction_confidence = extraction.confidence
+        record.extraction_model_version = extraction.model_version
+
+    tier = hvac_tier(record.building_type, record.stories)
+    record.hvac_tier = tier
+    record.hvac_score = hvac_score(tier, record.is_ground_up, record.square_footage, record.variance_types)
+
+
+def _delete_orphan_projects(session: Session) -> None:
+    """Drop projects that no agenda item points at any more."""
+    session.flush()
+    session.query(Project).filter(~Project.agenda_items.any()).delete(synchronize_session=False)
+
+
 def _ingest_meeting(session: Session, pdf: AgendaPdf) -> int:
-    """Write one agenda PDF's meeting and items into the session. Returns the item count."""
+    """Write one agenda PDF's meeting and items into the session. Returns the item count.
+
+    Items are matched to existing rows by (agenda_section, item_number), so a
+    re-ingest keeps each row's id and never rewrites anything but the raw fields.
+    """
     items = parse_agenda(pdf.text, pdf.town, pdf.board)
 
     meeting = (
@@ -195,64 +250,39 @@ def _ingest_meeting(session: Session, pdf: AgendaPdf) -> int:
         session.add(meeting)
         session.flush()
     else:
-        session.query(AgendaItemRecord).filter_by(meeting_id=meeting.id).delete()
         meeting.meeting_type = _extract_meeting_type(pdf.text)
         meeting.google_drive_url = _extract_google_drive_url(pdf.text)
         meeting.raw_text = pdf.text
 
     meeting.source_pdf_path = _store_source_pdf(pdf.path, meeting.id)
 
+    records_by_key = {(record.agenda_section, record.item_number): record for record in meeting.agenda_items}
     for item in items:
-        first_block = item.blocks[0] if item.blocks else None
-        block = first_block.block if first_block else ""
-        lots = first_block.lots if first_block else []
-        project = _get_or_create_project(session, block, lots)
-
-        extraction = extract_fields(item.project_text)
-        tier = hvac_tier(extraction.building_type, extraction.stories)
-        score = hvac_score(tier, extraction.is_ground_up, extraction.square_footage, extraction.variance_types)
-
-        session.add(
-            AgendaItemRecord(
-                meeting_id=meeting.id,
-                agenda_section=item.agenda_section,
-                item_number=item.item_number,
-                application_id=item.application_id,
-                premises=item.premises,
-                block=block,
-                lots=lots,
-                ward=item.ward,
-                applicant=item.applicant,
-                attorney=item.attorney,
-                project_text=item.project_text,
-                variances_raw=item.variances_raw,
-                project_id=project.id if project else None,
-                building_type=extraction.building_type,
-                stories=extraction.stories,
-                unit_count=extraction.unit_count,
-                square_footage=extraction.square_footage,
-                is_ground_up=extraction.is_ground_up,
-                involves_demolition=extraction.involves_demolition,
-                zone=extraction.zone,
-                variance_types=extraction.variance_types,
-                extraction_confidence=extraction.confidence,
-                extraction_model_version=extraction.model_version,
-                hvac_tier=tier,
-                hvac_score=score,
-            )
+        key = (item.agenda_section, item.item_number)
+        # A new row is only added once fully populated: the project lookup
+        # autoflushes, and application_id etc. are NOT NULL.
+        record = records_by_key.pop(key, None) or AgendaItemRecord(
+            meeting_id=meeting.id,
+            agenda_section=item.agenda_section,
+            item_number=item.item_number,
         )
+        _refresh_item_record(session, record, item)
+        session.add(record)
 
+    # Whatever is left was on file but is no longer in the agenda.
+    for stale_record in records_by_key.values():
+        session.delete(stale_record)
+
+    _delete_orphan_projects(session)
     return len(items)
 
 
 def ingest_directory(directory: Path) -> int:
     """Parse every agenda PDF under `directory` and upsert it into Postgres.
 
-    Re-ingesting a meeting already on file replaces its agenda_items outright
-    (there are no manual-correction override columns yet for this to clobber
-    — Milestone 7 adds those and must revisit this). Each PDF is committed on
-    its own, so one failure doesn't lose the rest of the batch. Returns the
-    number of PDFs ingested.
+    Re-ingesting a meeting already on file updates its agenda_items in place
+    (see _ingest_meeting). Each PDF is committed on its own, so one failure
+    doesn't lose the rest of the batch. Returns the number of PDFs ingested.
     """
     ingested_count = 0
     with SessionLocal() as session:

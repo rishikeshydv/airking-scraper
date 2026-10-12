@@ -7,6 +7,7 @@ frontend and the rest of ingestion never do.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 
 import anthropic
@@ -15,6 +16,14 @@ from api.config import settings
 from ingestion.scoring import BUILDING_TYPES
 
 MODEL = "claude-opus-5"
+
+# Failures worth retrying on the next ingest. Auth and bad-request errors are
+# deliberately not here: they mean a broken setup and should stop the run.
+_TRANSIENT_API_ERRORS = (
+    anthropic.APIConnectionError,
+    anthropic.RateLimitError,
+    anthropic.InternalServerError,
+)
 
 _SCHEMA = {
     "type": "object",
@@ -93,30 +102,40 @@ def extract_fields(project_text: str, *, client: anthropic.Anthropic | None = No
     Returns an all-null extraction (no Claude call) when project_text is
     blank — several towns' agenda formats (Fairfield's memorializations) print
     no project narrative at all, and there's nothing to extract from silence.
+    Also returns all-null (model_version None) on a transient API failure or an
+    unusable reply, so the item still ingests and is retried next time.
     """
     text = project_text.strip()
     if not text:
         return _empty_extraction()
 
     client = client or anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        output_config={"effort": "low", "format": {"type": "json_schema", "schema": _SCHEMA}},
-        system=_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": text}],
-    )
-    data = json.loads(next(block.text for block in response.content if block.type == "text"))
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=1024,
+            output_config={"effort": "low", "format": {"type": "json_schema", "schema": _SCHEMA}},
+            system=_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": text}],
+        )
+    except _TRANSIENT_API_ERRORS as e:
+        print(f"extraction skipped, will retry on next ingest: {e}", file=sys.stderr)
+        return _empty_extraction()
 
-    return FieldExtraction(
-        building_type=data["building_type"],
-        stories=data["stories"],
-        unit_count=data["unit_count"],
-        square_footage=data["square_footage"],
-        is_ground_up=data["is_ground_up"],
-        involves_demolition=data["involves_demolition"],
-        zone=data["zone"],
-        variance_types=data["variance_types"],
-        confidence=data["confidence"],
-        model_version=response.model,
-    )
+    try:
+        data = json.loads(next(block.text for block in response.content if block.type == "text"))
+        return FieldExtraction(
+            building_type=data["building_type"],
+            stories=data["stories"],
+            unit_count=data["unit_count"],
+            square_footage=data["square_footage"],
+            is_ground_up=data["is_ground_up"],
+            involves_demolition=data["involves_demolition"],
+            zone=data["zone"],
+            variance_types=data["variance_types"],
+            confidence=data["confidence"],
+            model_version=response.model,
+        )
+    except (StopIteration, json.JSONDecodeError, KeyError) as e:
+        print(f"extraction skipped, unusable model reply ({type(e).__name__}): {e}", file=sys.stderr)
+        return _empty_extraction()

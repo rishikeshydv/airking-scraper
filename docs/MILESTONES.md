@@ -46,7 +46,8 @@
 **Goal:** `project_text` is parsed into typed derived fields via Claude, and `hvac_tier`/`hvac_score` are computed deterministically from those fields.
 
 **Deliverables:**
-- `ingestion/extract_fields.py`: Claude call, JSON schema validation, confidence + model version stored per field
+- `ingestion/extract_fields.py`: Claude call with a JSON-schema structured reply; one confidence + model version stored per item (not per field); transient API failures leave the item's derived fields null and are retried on the next ingest
+- Re-ingestion upserts `agenda_items` in place (same id per `(meeting, section, item number)`) and only calls Claude when an item's text is new or its earlier extraction failed
 - `projects` table + block/lot linking across meetings
 - `scoring.py` implementing the tier table and `hvac_score` formula
 
