@@ -74,10 +74,16 @@ def _load_robots_parser(robots_url: str) -> urllib.robotparser.RobotFileParser:
         # parsed into it refuses everything, so allow-all must be explicit.
         parser.allow_all = True
     else:
-        raise RobotsDisallowedError(
+        message = (
             f"robots.txt at {robots_url} returned HTTP {response.status_code}; "
             "refusing to crawl without a readable robots.txt"
         )
+        if response.status_code == 403:
+            message += (
+                ". A 403 usually means the site blocks automated clients (bot protection), "
+                "which a different User-Agent won't fix. Download the PDFs by hand and use `ingest --dir`."
+            )
+        raise RobotsDisallowedError(message)
     return parser
 
 

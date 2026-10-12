@@ -43,7 +43,10 @@ Checked against the live files (2026-08-16): `newarknj.gov` and the other CivicP
 
 1. **Manual mode (default, v1)** — point the parser at a local directory of PDFs downloaded by hand or received via the board's email list. Zero network access required.
 2. **Authorized crawl mode (gated)** — runs only when that town's `<TOWN>_CRAWL_AUTHORIZED=true` (e.g. `NEWARK_CRAWL_AUTHORIZED`), which is documented as requiring written permission from the town, in addition to (not instead of) the robots.txt check. Checks `robots.txt` before every fetch, rate-limits to ≤1 request/2s, sends a descriptive User-Agent with a contact email. Supported towns: Newark, Bloomfield, Fairfield, Livingston — see `ingestion/scrape.py`.
-3. Do not design around circumventing `robots.txt` — this is why Montclair has no crawler. Manual mode covers MVP volume (~2 meetings/month/board) and remains the only path for Montclair.
+3. **Manual mode in production** — for towns that can't be crawled. Download the PDFs into `<folder>/planning/` and `<folder>/zoning/` named `<town>_<anything>.pdf`, then (with `railway login`, an SSH key registered via `railway ssh keys add`, and `RAILWAY_TOKEN` unset):
+   `tar -C <folder> -cf - . | railway ssh --service api -- sh -c "mkdir -p /data/incoming && tar -xf - -C /data/incoming"`, then `railway ssh --service api -- /opt/venv/bin/ingest --dir /data/incoming`, then `railway ssh --service api -- rm -rf /data/incoming`. Add `--project` and `--environment` flags when not linked.
+   Newark (Cloudflare bot protection returns 403 even for `robots.txt`) and Montclair (see above) currently need this route.
+4. Do not design around circumventing `robots.txt` — this is why Montclair has no crawler. Manual mode covers MVP volume (~2 meetings/month/board) and remains the only path for Montclair.
 
 ---
 # state management

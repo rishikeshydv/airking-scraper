@@ -47,6 +47,22 @@ def test_unreadable_robots_txt_refuses_fetching(robots_server) -> None:
         fetch._check_robots_txt(AGENDA_URL)
 
 
+def test_blocked_robots_txt_points_to_manual_ingestion(robots_server) -> None:
+    robots_server.response = FakeResponse(status_code=403)
+
+    with pytest.raises(fetch.RobotsDisallowedError, match="ingest --dir"):
+        fetch._check_robots_txt(AGENDA_URL)
+
+
+def test_server_error_on_robots_txt_does_not_suggest_bot_protection(robots_server) -> None:
+    robots_server.response = FakeResponse(status_code=500)
+
+    with pytest.raises(fetch.RobotsDisallowedError) as error:
+        fetch._check_robots_txt(AGENDA_URL)
+
+    assert "bot protection" not in str(error.value)
+
+
 def test_disallowed_path_refuses_fetching(robots_server) -> None:
     robots_server.response = FakeResponse(status_code=200, text="User-agent: *\nDisallow: /AgendaCenter")
 
