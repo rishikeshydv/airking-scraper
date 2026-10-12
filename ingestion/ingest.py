@@ -15,10 +15,12 @@ import re
 import shutil
 import sys
 import tempfile
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 
 import pdfplumber
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from api.config import settings
@@ -121,102 +123,150 @@ def _get_or_create_project(session: Session, block: str, lots: list[str]) -> Pro
     return project
 
 
-def ingest_directory(directory: Path) -> int:
-    """Parse every agenda PDF under `directory` and upsert it into Postgres.
+@dataclass
+class AgendaPdf:
+    path: Path
+    town: str
+    board: str
+    text: str
+    meeting_date: date
 
-    Re-ingesting a meeting already on file replaces its agenda_items outright
-    (there are no manual-correction override columns yet for this to clobber
-    — Milestone 7 adds those and must revisit this). Returns the number of
-    PDFs ingested.
+
+def _read_agenda_pdfs(directory: Path) -> list[AgendaPdf]:
+    """Read every agenda PDF under `directory`, keeping one per (town, board, meeting_date).
+
+    Some towns post more than one document for the same board and date — e.g.
+    a January Reorganizational Meeting alongside a Regular Meeting on the same
+    calendar date (confirmed live on Fairfield). The meetings table holds one
+    row per (town, board, meeting_date), so on a collision keep whichever
+    document has more actual content: reorganizational meetings are
+    consistently much shorter (just an officer roll call) than one with real
+    business.
     """
-    pdfs = _iter_agenda_pdfs(directory)
-    if not pdfs:
+    pdf_paths = _iter_agenda_pdfs(directory)
+    if not pdf_paths:
         raise ValueError(
             f"no agenda PDFs found under {directory} "
             f"(expected {directory}/planning/*.pdf and/or {directory}/zoning/*.pdf)"
         )
 
+    pdf_by_meeting: dict[tuple[str, str, date], AgendaPdf] = {}
+    for pdf_path, town, board in pdf_paths:
+        text = _extract_pdf_text(pdf_path)
+        try:
+            meeting_date = _extract_meeting_date(text)
+        except ValueError as e:
+            # One bad PDF (e.g. a stray non-agenda document) shouldn't
+            # lose everything else already gathered in this batch.
+            print(f"skipping {pdf_path.name}: {e}", file=sys.stderr)
+            continue
+
+        meeting_key = (town, board, meeting_date)
+        kept = pdf_by_meeting.get(meeting_key)
+        if kept is not None and len(kept.text) >= len(text):
+            print(f"skipping {pdf_path.name}: {kept.path.name} already covers {town}/{board} {meeting_date}", file=sys.stderr)
+            continue
+        if kept is not None:
+            print(f"skipping {kept.path.name}: {pdf_path.name} has more content for {town}/{board} {meeting_date}", file=sys.stderr)
+
+        pdf_by_meeting[meeting_key] = AgendaPdf(pdf_path, town, board, text, meeting_date)
+
+    return list(pdf_by_meeting.values())
+
+
+def _ingest_meeting(session: Session, pdf: AgendaPdf) -> int:
+    """Write one agenda PDF's meeting and items into the session. Returns the item count."""
+    items = parse_agenda(pdf.text, pdf.town, pdf.board)
+
+    meeting = (
+        session.query(Meeting)
+        .filter_by(town=pdf.town, board=pdf.board, meeting_date=pdf.meeting_date)
+        .one_or_none()
+    )
+    if meeting is None:
+        meeting = Meeting(
+            town=pdf.town,
+            board=pdf.board,
+            meeting_date=pdf.meeting_date,
+            meeting_type=_extract_meeting_type(pdf.text),
+            google_drive_url=_extract_google_drive_url(pdf.text),
+            raw_text=pdf.text,
+        )
+        session.add(meeting)
+        session.flush()
+    else:
+        session.query(AgendaItemRecord).filter_by(meeting_id=meeting.id).delete()
+        meeting.meeting_type = _extract_meeting_type(pdf.text)
+        meeting.google_drive_url = _extract_google_drive_url(pdf.text)
+        meeting.raw_text = pdf.text
+
+    meeting.source_pdf_path = _store_source_pdf(pdf.path, meeting.id)
+
+    for item in items:
+        first_block = item.blocks[0] if item.blocks else None
+        block = first_block.block if first_block else ""
+        lots = first_block.lots if first_block else []
+        project = _get_or_create_project(session, block, lots)
+
+        extraction = extract_fields(item.project_text)
+        tier = hvac_tier(extraction.building_type, extraction.stories)
+        score = hvac_score(tier, extraction.is_ground_up, extraction.square_footage, extraction.variance_types)
+
+        session.add(
+            AgendaItemRecord(
+                meeting_id=meeting.id,
+                agenda_section=item.agenda_section,
+                item_number=item.item_number,
+                application_id=item.application_id,
+                premises=item.premises,
+                block=block,
+                lots=lots,
+                ward=item.ward,
+                applicant=item.applicant,
+                attorney=item.attorney,
+                project_text=item.project_text,
+                variances_raw=item.variances_raw,
+                project_id=project.id if project else None,
+                building_type=extraction.building_type,
+                stories=extraction.stories,
+                unit_count=extraction.unit_count,
+                square_footage=extraction.square_footage,
+                is_ground_up=extraction.is_ground_up,
+                involves_demolition=extraction.involves_demolition,
+                zone=extraction.zone,
+                variance_types=extraction.variance_types,
+                extraction_confidence=extraction.confidence,
+                extraction_model_version=extraction.model_version,
+                hvac_tier=tier,
+                hvac_score=score,
+            )
+        )
+
+    return len(items)
+
+
+def ingest_directory(directory: Path) -> int:
+    """Parse every agenda PDF under `directory` and upsert it into Postgres.
+
+    Re-ingesting a meeting already on file replaces its agenda_items outright
+    (there are no manual-correction override columns yet for this to clobber
+    — Milestone 7 adds those and must revisit this). Each PDF is committed on
+    its own, so one failure doesn't lose the rest of the batch. Returns the
+    number of PDFs ingested.
+    """
     ingested_count = 0
     with SessionLocal() as session:
-        for pdf_path, town, board in pdfs:
-            text = _extract_pdf_text(pdf_path)
+        for pdf in _read_agenda_pdfs(directory):
             try:
-                meeting_date = _extract_meeting_date(text)
-            except ValueError as e:
-                # One bad PDF (e.g. a stray non-agenda document) shouldn't
-                # lose everything else already gathered in this batch.
-                print(f"skipping {pdf_path.name}: {e}", file=sys.stderr)
+                item_count = _ingest_meeting(session, pdf)
+                session.commit()
+            except SQLAlchemyError as e:
+                session.rollback()
+                print(f"failed {pdf.path.name}: {e}", file=sys.stderr)
                 continue
-            items = parse_agenda(text, town, board)
 
-            meeting = (
-                session.query(Meeting)
-                .filter_by(town=town, board=board, meeting_date=meeting_date)
-                .one_or_none()
-            )
-            if meeting is None:
-                meeting = Meeting(
-                    town=town,
-                    board=board,
-                    meeting_date=meeting_date,
-                    meeting_type=_extract_meeting_type(text),
-                    google_drive_url=_extract_google_drive_url(text),
-                    raw_text=text,
-                )
-                session.add(meeting)
-                session.flush()
-            else:
-                session.query(AgendaItemRecord).filter_by(meeting_id=meeting.id).delete()
-                meeting.meeting_type = _extract_meeting_type(text)
-                meeting.google_drive_url = _extract_google_drive_url(text)
-                meeting.raw_text = text
-
-            meeting.source_pdf_path = _store_source_pdf(pdf_path, meeting.id)
-
-            for item in items:
-                first_block = item.blocks[0] if item.blocks else None
-                block = first_block.block if first_block else ""
-                lots = first_block.lots if first_block else []
-                project = _get_or_create_project(session, block, lots)
-
-                extraction = extract_fields(item.project_text)
-                tier = hvac_tier(extraction.building_type, extraction.stories)
-                score = hvac_score(tier, extraction.is_ground_up, extraction.square_footage, extraction.variance_types)
-
-                session.add(
-                    AgendaItemRecord(
-                        meeting_id=meeting.id,
-                        agenda_section=item.agenda_section,
-                        item_number=item.item_number,
-                        application_id=item.application_id,
-                        premises=item.premises,
-                        block=block,
-                        lots=lots,
-                        ward=item.ward,
-                        applicant=item.applicant,
-                        attorney=item.attorney,
-                        project_text=item.project_text,
-                        variances_raw=item.variances_raw,
-                        project_id=project.id if project else None,
-                        building_type=extraction.building_type,
-                        stories=extraction.stories,
-                        unit_count=extraction.unit_count,
-                        square_footage=extraction.square_footage,
-                        is_ground_up=extraction.is_ground_up,
-                        involves_demolition=extraction.involves_demolition,
-                        zone=extraction.zone,
-                        variance_types=extraction.variance_types,
-                        extraction_confidence=extraction.confidence,
-                        extraction_model_version=extraction.model_version,
-                        hvac_tier=tier,
-                        hvac_score=score,
-                    )
-                )
-
-            print(f"ingested {pdf_path.name}: {town}/{board} {meeting_date} ({len(items)} items)")
+            print(f"ingested {pdf.path.name}: {pdf.town}/{pdf.board} {pdf.meeting_date} ({item_count} items)")
             ingested_count += 1
-
-        session.commit()
 
     return ingested_count
 
@@ -244,15 +294,9 @@ def ingest_town(town: str) -> int:
 
     with tempfile.TemporaryDirectory() as tmpdir_name:
         tmpdir = Path(tmpdir_name)
-        # Some towns post more than one document for the same (board, date)
-        # — e.g. a January Reorganizational Meeting alongside a Regular
-        # Meeting on the same calendar date (confirmed live on Fairfield).
-        # The (town, board, meeting_date) schema can only hold one meeting
-        # per slot, so on a collision keep whichever document has more
-        # actual content — reorganizational meetings are consistently much
-        # shorter (just an officer roll call) than one with real business.
-        kept_text_length: dict[Path, int] = {}
-        for meeting in meetings:
+        # Same-(board, date) documents each get their own file; ingest_directory
+        # keeps the one with more content (see _read_agenda_pdfs).
+        for index, meeting in enumerate(meetings):
             pdf_bytes = fetch_url(meeting.pdf_url, town)
             text = _extract_pdf_text_from_bytes(pdf_bytes)
 
@@ -278,11 +322,8 @@ def ingest_town(town: str) -> int:
 
             board_dir = tmpdir / meeting.board
             board_dir.mkdir(parents=True, exist_ok=True)
-            dest = board_dir / f"{town}_{meeting.meeting_date.isoformat()}.pdf"
-            if dest in kept_text_length and kept_text_length[dest] >= len(text):
-                continue
+            dest = board_dir / f"{town}_{meeting.meeting_date.isoformat()}_{index}.pdf"
             dest.write_bytes(pdf_bytes)
-            kept_text_length[dest] = len(text)
 
         return ingest_directory(tmpdir)
 
